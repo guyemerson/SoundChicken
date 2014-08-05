@@ -7,6 +7,7 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
+from kivy.properties import NumericProperty, BooleanProperty, ObjectProperty
 import random, os
 
 
@@ -32,7 +33,7 @@ Builder.load_string("""
         Button:
             size_hint: 1,1
             text: 'Quit'
-            on_press: root.stop()
+            on_press: app.stop()
             
 <TapeScreen>:
 	BoxLayout:
@@ -121,23 +122,40 @@ Builder.load_string("""
 	    		Label:
     				text: 'Correct'
     			Label:
-    				text: '10'
+    				text: str(root.correct)
 			BoxLayout:
 				orientation: 'vertical'
 	    		Label:
     				text: 'Remaining'
     			Label:
-    				text: '8'
+    				text: str(root.remaining)
     	
         Button:
             text: 'Moo'
-            on_press: print 'moo'
+            id: moo
+            disabled: True
+            on_press: root.needNewSound = True
+            on_press: 
+        		if root.remaining ==1: root.manager.current = 'menu'; root.remaining = 20; root.correct = 0
+        		else: root.remaining -=1; root.correct +=1
+        	on_press: play.text = 'Play next'
+        	on_press: self.disabled = True; quack.disabled = True
         Button:
         	text: 'Quack'
-        	on_press: print 'quack'
+        	id: quack
+        	disabled: True
+            on_press: 
+        		if root.remaining ==1: root.manager.current = 'menu'; root.remaining = 20; root.correct = 0
+        		else: root.remaining -=1
+        	on_press: play.text = 'Play next'
+        	on_press: self.disabled = True; moo.disabled = True
         Button:
-        	text: 'Play again'
-        	on_press: root.sound.play()
+        	id: play
+        	text: 'Play next'
+        	on_release:
+        		if self.text == 'Play next': root.playSound(True); self.text = 'Play again'
+        		elif self.text == 'Play again': root.playSound(False)
+        	on_release: moo.disabled = False; quack.disabled = False
         Button:
             text: 'Back to training menu'
             on_press: root.manager.current = 'menu'
@@ -148,8 +166,9 @@ Builder.load_string("""
 # ...to get sliding left when going back
 
 class MainScreen(Screen):
-	def stop(self):
-		App.get_running_app().stop()
+	pass
+#	def stop(self):
+#		App.get_running_app().stop()
 
 class TapeScreen(Screen):
 	pass
@@ -161,10 +180,17 @@ class MenuScreen(Screen):
 	pass
 
 class TrainingScreen(Screen):
-#	sound = SoundLoader.load('/Users/stanislawpstrokonski/Desktop/software/Sounds/miao.wav')
-	filename = random.choice(os.listdir('../data'))
-	sound = SoundLoader.load('../data/' + filename)
+	correct = NumericProperty(0)
+	remaining = NumericProperty(20)
 	
+	def playSound(self, needNew):
+		if needNew == True:
+			filename = random.choice([f for f in os.listdir('../sample data') if f.endswith(".wav")])
+			print filename
+			self.sound = SoundLoader.load('../sample data/' + filename)
+		self.sound.play()
+
+
 
 sm = ScreenManager()
 sm.add_widget(MainScreen(name='main'))
