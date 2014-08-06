@@ -1,14 +1,15 @@
 from kivy.app import App
 #from kivy.uix.gridlayout import GridLayout
 #from kivy.uix.label import Label
-#from kivy.uix.textinput import TextInput
+from kivy.uix.textinput import TextInput
 #from kivy.uix.spinner import Spinner
 #from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
-from kivy.properties import NumericProperty, BooleanProperty, ObjectProperty
+from kivy.properties import NumericProperty, BooleanProperty, ObjectProperty, StringProperty
 import random, os
+import record
 
 
 Builder.load_string("""
@@ -58,9 +59,23 @@ Builder.load_string("""
 		padding: 20
 		
 		Label: 
-			text: 'Record'
+			text: 'Record Menu'
 			bold: True
 			font_size: 30
+		TextInput:
+			id: filetext
+			multiline: False
+			text: '<your filename here>'
+		Button:
+			text: 'Record'
+			on_press: root.recordAndSave(filetext.text)
+			on_press: playback.disabled = False
+			on_press: root.mostRecentFile = filetext.text
+		Button:
+			id: playback
+			text: 'Play back recording'
+			disabled: True
+			on_press: root.playback(root.mostRecentFile)
 		Button:
 			text: 'Back'
 			on_press: root.manager.current = 'main'
@@ -165,19 +180,31 @@ Builder.load_string("""
 # on_press: root.manager.switch_to(/the screen in question/, direction='left')
 # ...to get sliding left when going back
 
+
 class MainScreen(Screen):
 	pass
 #	def stop(self):
 #		App.get_running_app().stop()
 
+
 class TapeScreen(Screen):
 	pass
 	
+	
 class RecordScreen(Screen):
-	pass
+	mostRecentFile = StringProperty('')
+	
+	def recordAndSave(self, filename):
+		record.record(filename)
+	
+	def playback(self, filename):
+		self.sound = SoundLoader.load('../recordings/' + filename + '.wav')
+		self.sound.play()
+
 
 class MenuScreen(Screen):
 	pass
+
 
 class TrainingScreen(Screen):
 	correct = NumericProperty(0)
