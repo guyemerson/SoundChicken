@@ -7,6 +7,8 @@ import pyaudio
 import wave
 import sys
 import os
+import time
+from kivy.core.audio import SoundLoader
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -15,10 +17,15 @@ RATE = 44100
 RECORD_SECONDS = 5
 
 def record(filename):
-	if sys.platform == 'darwin':
-		CHANNELS = 1
+	#if sys.platform == 'darwin':
+	#	CHANNELS = 1
 
 	p = pyaudio.PyAudio()
+
+	# Would be nice to play a little sound here - a beep or something - to indicate that recording has begun
+	#sound = SoundLoader.load('./beep1.wav')
+	#sound.play()
+	
 
 	stream = p.open(format=FORMAT,
     	            channels=CHANNELS,
@@ -35,7 +42,8 @@ def record(filename):
 		frames.append(data)
 
 	print("* finished recording")
-	#filename = raw_input("Filename: ")
+	#sound = SoundLoader.load('./beep1.wav')
+	#sound.play()
 
 	stream.stop_stream()
 	stream.close()

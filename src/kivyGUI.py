@@ -8,9 +8,12 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
 from kivy.properties import NumericProperty, BooleanProperty, ObjectProperty, StringProperty
-import random, os
+import random, os, time
 import record
 
+
+CHICKEN_SOUNDS_MAX_NO = 21
+COCK_SOUNDS_MAX_NO = 1
 
 Builder.load_string("""
 <MainScreen>:
@@ -25,16 +28,19 @@ Builder.load_string("""
 		Button:
 			text: 'Training'
 			on_press: root.manager.current = 'menu'
+			on_press: root.anySound('chicken', '../media/')
 		Button:
 			text: 'View my tapes'
 			on_press: root.manager.current = 'tapes'
+			on_press: root.anySound('chicken', '../media/')
 		Button:
 			text: 'Record native-speaker'
 			on_press: root.manager.current = 'record'
+			on_press: root.anySound('chicken', '../media/')
         Button:
             size_hint: 1,1
             text: 'Quit'
-            on_press: app.stop()
+            on_release: app.stop()
             
 <TapeScreen>:
 	BoxLayout:
@@ -47,11 +53,14 @@ Builder.load_string("""
 			font_size: 30
 		Button:
 			text: 'bla'
+			on_press: root.anySound('chicken', '../media/')
 		Button:
 			text: 'bla bla'
+			on_press: root.anySound('chicken', '../media/')
 		Button:
 			text: 'Back'
 			on_press: root.manager.current = 'main'
+			on_press: root.anySound('chicken', '../media/')
 
 <RecordScreen>:
 	BoxLayout:
@@ -68,17 +77,20 @@ Builder.load_string("""
 			text: '<your filename here>'
 		Button:
 			text: 'Record'
-			on_press: root.recordAndSave(filetext.text)
-			on_press: playback.disabled = False
-			on_press: root.mostRecentFile = filetext.text
+			on_press: self.text = 'Recording...'
+			on_release: root.recordAndSave(filetext.text)
+			on_release: playback.disabled = False
+			on_release: root.mostRecentFile = filetext.text
+			on_release: self.text = 'Record'
 		Button:
 			id: playback
 			text: 'Play back recording'
 			disabled: True
-			on_press: root.playback(root.mostRecentFile)
+			on_press: root.anySound(root.mostRecentFile, '../recordings/')
 		Button:
 			text: 'Back'
 			on_press: root.manager.current = 'main'
+			on_press: root.anySound('chicken', '../media/')
 
 
 <MenuScreen>:
@@ -119,9 +131,11 @@ Builder.load_string("""
         	size_hint: 1,1
             text: 'Go!'
             on_press: root.manager.current = 'training'
+            on_press: root.anySound('cock', '../media/')	
 		Button:
 			text: 'Back to main menu'
-			on_press: root.manager.current = 'main'			
+			on_press: root.manager.current = 'main'
+			on_press: root.anySound('chicken', '../media/')
 
 
 <TrainingScreen>:
@@ -132,48 +146,60 @@ Builder.load_string("""
     	BoxLayout:
     		orientation: 'horizontal'
     		
-    		BoxLayout:
-    			orientation: 'vertical'
-	    		Label:
-    				text: 'Correct'
-    			Label:
-    				text: str(root.correct)
 			BoxLayout:
 				orientation: 'vertical'
-	    		Label:
-    				text: 'Remaining'
-    			Label:
+				Label:
+					text: 'Correct'
+				Label:
+					text: str(root.correct)
+			BoxLayout:
+				orientation: 'vertical'
+				Label:
+					text: 'Remaining'
+				Label:
     				text: str(root.remaining)
-    	
-        Button:
-            text: 'Moo'
-            id: moo
-            disabled: True
-            on_press: root.needNewSound = True
-            on_press: 
-        		if root.remaining ==1: root.manager.current = 'menu'; root.remaining = 20; root.correct = 0
-        		else: root.remaining -=1; root.correct +=1
-        	on_press: play.text = 'Play next'
-        	on_press: self.disabled = True; quack.disabled = True
-        Button:
-        	text: 'Quack'
-        	id: quack
-        	disabled: True
-            on_press: 
-        		if root.remaining ==1: root.manager.current = 'menu'; root.remaining = 20; root.correct = 0
-        		else: root.remaining -=1
-        	on_press: play.text = 'Play next'
-        	on_press: self.disabled = True; moo.disabled = True
-        Button:
-        	id: play
-        	text: 'Play next'
-        	on_release:
-        		if self.text == 'Play next': root.playSound(True); self.text = 'Play again'
-        		elif self.text == 'Play again': root.playSound(False)
-        	on_release: moo.disabled = False; quack.disabled = False
-        Button:
-            text: 'Back to training menu'
-            on_press: root.manager.current = 'menu'
+
+		BoxLayout:
+    		orientation: 'horizontal'
+    		
+	        Button:
+    	    	text: 'The right answer'
+    	    	id: moo
+				disabled: True
+		    	on_press: root.needNewSound = True
+		    	on_press: root.remaining -=1; root.correct +=1
+		    	on_press: 
+		    		if root.remaining ==1: root.anySound('ooh', '../media/')
+		    		else: root.anySound('correct bell short', '../media/')
+				on_release: play.text = 'Play next'
+				on_release: self.disabled = True; quack.disabled = True
+				on_release: 
+					if root.remaining ==0: root.sleep(2); root.manager.current = 'menu'; root.remaining = 20; root.correct = 0
+			Button:
+				text: 'The wrong answer'
+				id: quack
+				disabled: True
+				on_press: root.needNewSound = True
+				on_press: root.remaining -=1
+		    	on_press: 
+		    		if root.remaining ==1: root.anySound('ooh', '../media/')
+		    		else: root.anySound('quack wrong', '../media/')
+				on_release: play.text = 'Play next'
+				on_release: self.disabled = True; moo.disabled = True
+				on_release: 
+					if root.remaining ==0: root.sleep(2); root.manager.current = 'menu'; root.remaining = 20; root.correct = 0
+        
+		Button:
+			id: play
+			text: 'Play next'
+			on_release:
+				if self.text == 'Play next': root.playSound(True); self.text = 'Play again'
+				elif self.text == 'Play again': root.playSound(False)
+			on_release: moo.disabled = False; quack.disabled = False
+		Button:
+			text: 'Back to training menu'
+			on_press: root.manager.current = 'menu'
+			on_press: root.anySound('chicken', '../media/')
 """)
 
 # Try using:
@@ -181,32 +207,47 @@ Builder.load_string("""
 # ...to get sliding left when going back
 
 
-class MainScreen(Screen):
+class ChickenScreen(Screen):
+
+	def sleep(self, seconds):
+		time.sleep(seconds)
+	
+	def anySound(self, filename, location):
+		filenum = ''
+		if location == '../media/':
+			if filename == 'chicken':
+				filenum = str(random.randint(0, CHICKEN_SOUNDS_MAX_NO))
+			elif filename == 'cock':
+				filenum = str(random.randint(0, COCK_SOUNDS_MAX_NO))
+			
+		self.sound = SoundLoader.load(location + filename + filenum + '.wav')
+		self.sound.play()	
+		
+
+class MainScreen(ChickenScreen):
 	pass
-#	def stop(self):
-#		App.get_running_app().stop()
 
 
-class TapeScreen(Screen):
+class TapeScreen(ChickenScreen):
 	pass
 	
 	
-class RecordScreen(Screen):
+class RecordScreen(ChickenScreen):
 	mostRecentFile = StringProperty('')
 	
 	def recordAndSave(self, filename):
 		record.record(filename)
-	
-	def playback(self, filename):
-		self.sound = SoundLoader.load('../recordings/' + filename + '.wav')
-		self.sound.play()
+		# This appears to lag by about 1 second the first time it is used.
+		# A hackish but workable solution would probably be to use this function once on start-up, to 'warm it up'.
+		# Then the user would never experience a problem with the lag, 
+		# as it would have already passed by the time the user tried to make a recording.
 
 
-class MenuScreen(Screen):
+class MenuScreen(ChickenScreen):
 	pass
 
 
-class TrainingScreen(Screen):
+class TrainingScreen(ChickenScreen):
 	correct = NumericProperty(0)
 	remaining = NumericProperty(20)
 	
@@ -216,7 +257,6 @@ class TrainingScreen(Screen):
 			print filename
 			self.sound = SoundLoader.load('../sample data/' + filename)
 		self.sound.play()
-
 
 
 sm = ScreenManager()
