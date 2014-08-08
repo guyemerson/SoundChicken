@@ -21,16 +21,21 @@ Builder.load_string("""
 		orientation: 'vertical'
 		padding: 20
 		
-		Label:
-			text: 'Main Menu'
-			bold: True
-			font_size: 30
+		BoxLayout:
+			orientation: 'horizontal'
+			
+			Image:
+				source: '../media/SC_logo_256x256.png'
+			Label:
+				text: 'SoundChicken'
+				bold: True
+				font_size: 30
 		Button:
 			text: 'Training'
 			on_press: root.manager.current = 'menu'
 			on_press: root.anySound('chicken', '../media/')
 		Button:
-			text: 'View my tapes'
+			text: 'View my nests'
 			on_press: root.manager.current = 'tapes'
 			on_press: root.anySound('chicken', '../media/')
 		Button:
@@ -47,16 +52,24 @@ Builder.load_string("""
 		orientation: 'vertical'
 		padding: 20
 		
-		Label:
-			text: 'Tapes'
-			bold: True
-			font_size: 30
+		BoxLayout:
+			orientation: 'horizontal'
+			
+			Image:
+				source: '../media/2eggs.jpeg'			
+			Label:
+				text: 'Nests'
+				bold: True
+				font_size: 30
+
 		Button:
-			text: 'bla'
+			text: 'British English'
 			on_press: root.anySound('chicken', '../media/')
 		Button:
-			text: 'bla bla'
+			text: 'Standard German'
 			on_press: root.anySound('chicken', '../media/')
+		Button:
+			text: 'Browse shared nests...'
 		Button:
 			text: 'Back'
 			on_press: root.manager.current = 'main'
@@ -68,7 +81,7 @@ Builder.load_string("""
 		padding: 20
 		
 		Label: 
-			text: 'Record Menu'
+			text: 'Lay eggs'
 			bold: True
 			font_size: 30
 		TextInput:
@@ -165,9 +178,13 @@ Builder.load_string("""
 	        Button:
     	    	text: 'The right answer'
     	    	id: moo
+    	    	color: 1.0, 1.0, 1.0, 1.0
+    	    	background_normal: "white"
+    	    	background_color: 0.5, 0.5, 0.5, 0.7
 				disabled: True
 		    	on_press: root.needNewSound = True
 		    	on_press: root.remaining -=1; root.correct +=1
+		    	on_press: self.color = (0.0, 1.0, 0.0, 0.75); quack.color = (1.0, 0.0, 0.0, 0.75)
 		    	on_press: 
 		    		if root.remaining ==1: root.anySound('ooh', '../media/')
 		    		else: root.anySound('correct bell short', '../media/')
@@ -178,9 +195,13 @@ Builder.load_string("""
 			Button:
 				text: 'The wrong answer'
 				id: quack
+    	    	color: 1.0, 1.0, 1.0, 1.0
+    	    	background_normal: "white"
+    	    	background_color: 0.5, 0.5, 0.5, 0.7
 				disabled: True
 				on_press: root.needNewSound = True
 				on_press: root.remaining -=1
+		    	on_press: moo.color = (0.0, 1.0, 0.0, 0.75); self.color = (1.0, 0.0, 0.0, 0.75)
 		    	on_press: 
 		    		if root.remaining ==1: root.anySound('ooh', '../media/')
 		    		else: root.anySound('quack wrong', '../media/')
@@ -192,6 +213,7 @@ Builder.load_string("""
 		Button:
 			id: play
 			text: 'Play next'
+			on_press: moo.color = (1.0, 1.0, 1.0, 1.0); quack.color = (1.0, 1.0, 1.0, 1.0)
 			on_release:
 				if self.text == 'Play next': root.playSound(True); self.text = 'Play again'
 				elif self.text == 'Play again': root.playSound(False)
